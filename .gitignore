@@ -122,3 +122,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Ignore Data
+./data
+
+*.xls
+*.xls#
