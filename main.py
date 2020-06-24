@@ -1,65 +1,88 @@
+import collections
+
 from prettytable import PrettyTable
 
 from CEINNReader.App.df_handler import DFHandler
 
 
-def monthly_portfolio(dfh):
-    porfolio = dict()
+def monthly_portfolio(dfh, portfolio=None):
+
+    if not portfolio:
+        portfolio = collections.OrderedDict()
 
     years = dfh.get_years()
-    months = dfh.get_months(year=years[0])
     # stocks = dfh.get_stocks(year=years[0], month=months[0])
+    for year in years:
+        months = dfh.get_months(year=year)
+        for month in months:
+            ops = dfh.filter_operations(
+                year=year,
+                month=month,
+                typecv="")
 
-    for month in months:
-        ops = dfh.filter_operations(
-        year=years[0],
-        month=month,
-        typecv="")
+            for idx, row in ops.iterrows():
+                typecv = row[1]
+                stock = row[2]
+                qtd = row[3]
+                price = row[4]
 
-        for idx, row in ops.iterrows():
-            typecv = row[1]
-            stock = row[2]
-            qtd = row[3]
-            price = row[4]
+                if typecv == "C":
+                    op_stock = portfolio.get(stock)
+                    if op_stock:
+                        old_price = portfolio.get(stock).get("price")
+                        old_qtd = portfolio.get(stock).get("qtty")
 
-            if typecv == "C":
-                op_stock = porfolio.get(stock)
+                        new_qtd = old_qtd + qtd
+                        new_price = ((old_qtd*old_price) + (qtd*price))/(new_qtd)
 
-                if not op_stock:
-                    porfolio.update(stock={
+                        price = new_price
+                        qtd = new_qtd
+                else:
+                    op_stock = portfolio.get(stock)
+
+                    if not op_stock:
+                        continue
+
+                    old_price = portfolio.get(stock).get("price")
+                    old_qtd = portfolio.get(stock).get("qtty")
+
+                    new_qtd = old_qtd - qtd
+
+                    if new_qtd == 0:
+                        portfolio.pop(stock)
+                        continue
+                    else:
+                        new_price = ((old_qtd*old_price) + (qtd*price))/(new_qtd)
+
+                        price = new_price
+                        qtd = new_qtd
+
+                portfolio.update(
+                    {stock: {
                         'price': price,
                         'qtty': qtd,
-                    })
-                else:
-                    old_price = porfolio.get(stock).get("price")
-                    old_qtd = porfolio.get(stock).get("qtty")
+                    }})
 
-                    new_qtd = old_qtd + qtd
-                    new_price = (old_price + price)/(new_qtd)
+            generate_monthly_portfolio(month, year, portfolio)
 
-                    porfolio.update(stock={
-                        'price': new_price,
-                        'qtty': new_qtd,
-                    })
+    return portfolio
 
 
-
-
-
-
-
-def generate_monthly_portfolio(df, dfh, m, y, portfolio):
+def generate_monthly_portfolio(m, y, portfolio):
     t = PrettyTable(['Stock', 'Qtd', 'Price (R$)', 'Total (R$)', '%'])
 
-    for idx, row in df.iterrows():
+    total_P = sum([v['price']*v['qtty'] for k, v in sorted(portfolio.items())])
+    total_S = sum([v['qtty'] for k, v in sorted(portfolio.items())])
+
+    for k, v in sorted(portfolio.items()):
         try:
-            if row[1] == "C":
-                t.add_row([row[0].strftime('%d'), row[1], row[2], "{0:0.02f}".format(row[4]), row[3], "{0:0.02f}".format(row[5]), "{0:0.02f}%".format(row[5]*100/total_C)])
-            else:
-                t.add_row([row[0].strftime('%d'), row[1], row[2], "{0:0.02f}".format(row[4]), row[3], "{0:0.02f}".format(row[5]), "---"])
+            price = v['price']
+            qtty = v['qtty']
+            total = v['price']*v['qtty']
+            t.add_row([k, qtty, "{0:0.02f}".format(price), "{0:0.02f}".format(total), "{0:0.02f}%".format(total*100/total_P)])
         except ZeroDivisionError:
             pass
-
+    t.add_row([" ", total_S, " ", "{0:0.02f}".format(total_P), "100%"])
 
     print("======================================================================================")
     print("                               ===  {}/{} ===                                         ".format(m, y))
@@ -67,18 +90,25 @@ def generate_monthly_portfolio(df, dfh, m, y, portfolio):
     print("======================================================================================")
 
 
+
 def monthly_reports(dfh):
     years = dfh.get_years()
-    months = dfh.get_months(year=years[0])
-    # stocks = dfh.get_stocks(year=years[0], month=months[0])
 
-    for month in months:
-        ops = dfh.filter_operations(
-        year=years[0],
-        month=month,
-        typecv=""
-        )
-        generate_montly_reports(ops, dfh, month, years[0])
+    for year in years:
+        months = dfh.get_months(year=year)
+        # stocks = dfh.get_stocks(year=years[0], month=months[0])
+
+        for month in months:
+            ops = dfh.filter_operations(
+                year=year,
+                month=month,
+                typecv=""
+            )
+
+            if ops.empty:
+                continue
+            generate_montly_reports(ops, dfh, month, year)
+
 
 def generate_montly_reports(df, dfh, m, y):
     t = PrettyTable(['Date', 'C/V', 'Stock', 'Price (R$)', 'Qtd', 'Total (R$)', '%'])
@@ -110,11 +140,12 @@ def generate_montly_reports(df, dfh, m, y):
 
 if __name__ == "__main__":
 
-    file_name = "data/InfoCEI_2019.xls"
+    file_name = "data/InfoCEI_All_time.xls"
     dfh = DFHandler(file_name)
 
     monthly_reports(dfh)
-    monhtly_portfolio(dfh)
+    # portfolio = monthly_portfolio(dfh)
+
 
 
 
