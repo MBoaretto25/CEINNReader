@@ -5,10 +5,12 @@ This Software aims to produce readable reports for stocks negotiation, and all s
 
 # TODO
 - [x] Read .xlxs File 
-- [ ] Add Monthly Report Visualization
-- [ ] Add Monthly Portfolio Visualization
+- [x] Add Monthly Report Visualization
+- [x] Add Monthly Portfolio Visualization
 - [ ] Detect Day-Trade Operations
 
 ## Optional
 - [ ] Add Dividends Report
+- [ ] Usar um database (sqlite3) pra guardar as infos 
+- [ ] Usar Gráficos e Reports mais apresentáveis 
 
