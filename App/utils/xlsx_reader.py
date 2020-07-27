@@ -28,7 +28,7 @@ def read_xls(file_path):
     date_column = df.columns[0]
     c_v_column = df.columns[1]
 
-    #stripping spaces in date columns
+    #  stripping spaces in date columns
     for index, row in df.iterrows():
             row = row.copy()
             df.loc[index, date_column] = row[0].strip()
