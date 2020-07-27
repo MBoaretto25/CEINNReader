@@ -16,6 +16,8 @@ class DFHandler:
         self._price_col = self._df.columns[4]
         self._total_price_col = self._df.columns[5]
 
+        self._is_day_trade()
+
     @property
     def date_columns(self):
         return self._date_col
@@ -56,6 +58,27 @@ class DFHandler:
         if year:
             df = df[df['Year'].eq(year)]
         return list(set(self._df['Month']))
+
+    def _is_day_trade(self):
+        """
+        Set all day_trade values as True
+        """
+        self._df["is_day_trade"] = False
+        c_df = self._df.copy()
+        set_all_dates = set(c_df[self._date_col])
+        for idate in list(set_all_dates):
+            aux_df = c_df[c_df[self._date_col].eq(idate)]
+            set_all_stocks = set(aux_df[self._stock_col])
+            for istock in list(set_all_stocks):
+                is_day_trade = False
+                s_df = aux_df[aux_df[self._stock_col].eq(istock)]
+                if len(set(s_df[self._type_col])) > 1:
+                    for i in range(len(s_df[self._type_col]) - 1):
+                        if all(["C", "V"] == s_df[self._type_col][i:i + 2]):
+                            is_day_trade = True
+                    if is_day_trade:
+                        get_selling_stock_op_idx = s_df.index[s_df[self._type_col] == "V"].to_list()[-1]
+                        self._df.at[get_selling_stock_op_idx, "is_day_trade"] = True
 
     def get_stocks(self, month="", year=""):
         """

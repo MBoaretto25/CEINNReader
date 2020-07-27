@@ -7,7 +7,7 @@ This Software aims to produce readable reports for stocks negotiation, and all s
 - [x] Read .xlxs File 
 - [x] Add Monthly Report Visualization
 - [x] Add Monthly Portfolio Visualization
-- [ ] Detect Day-Trade Operations
+- [x] Detect Day-Trade Operations
 
 ## Optional
 - [ ] Add Dividends Report

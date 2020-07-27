@@ -111,7 +111,7 @@ def monthly_reports(dfh):
 
 
 def generate_montly_reports(df, dfh, m, y):
-    t = PrettyTable(['Date', 'C/V', 'Stock', 'Price (R$)', 'Qtd', 'Total (R$)', '%'])
+    t = PrettyTable(['Date', 'C/V', 'Stock', 'Price (R$)', 'Qtd', 'Total (R$)', '%', "DayTrade"])
 
     total_C = df[df['C/V'].eq("C")][dfh.total_price_col].sum()
 
@@ -119,18 +119,20 @@ def generate_montly_reports(df, dfh, m, y):
 
     total_final = total_V - total_C
 
-    df = df.sort_values(["C/V"])
+    # df = df.sort_values(["C/V"])
 
     for idx, row in df.iterrows():
         try:
+            day_trade_show = row[-1] if row[-1] else "---"
             if row[1] == "C":
-                t.add_row([row[0].strftime('%d'), row[1], row[2], "{0:0.02f}".format(row[4]), row[3], "{0:0.02f}".format(row[5]), "{0:0.02f}%".format(row[5]*100/total_C)])
+                t.add_row([row[0].strftime('%d'), row[1], row[2], "{0:0.02f}".format(row[4]), row[3], "{0:0.02f}".format(row[5]), "{0:0.02f}%".format(row[5]*100/total_C), day_trade_show])
             else:
-                t.add_row([row[0].strftime('%d'), row[1], row[2], "{0:0.02f}".format(row[4]), row[3], "{0:0.02f}".format(row[5]), "---"])
+                t.add_row([row[0].strftime('%d'), row[1], row[2], "{0:0.02f}".format(row[4]), row[3], "{0:0.02f}".format(row[5]), "---", day_trade_show])
+
         except ZeroDivisionError:
             pass
 
-    t.add_row([" ", " ", " ", " ", " ", "{0:0.02f}".format(total_final), "100%"])
+    t.add_row([" ", " ", " ", " ", " ", "{0:0.02f}".format(total_final), "100%", "---"])
 
     print("======================================================================================")
     print("                               ===  {}/{} ===                                         ".format(m, y))
