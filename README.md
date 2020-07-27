@@ -8,6 +8,7 @@ This Software aims to produce readable reports for stocks negotiation, and all s
 - [x] Add Monthly Report Visualization
 - [x] Add Monthly Portfolio Visualization
 - [x] Detect Day-Trade Operations
+- [ ] Identify ETF's
 
 ## Optional
 - [ ] Add Dividends Report
